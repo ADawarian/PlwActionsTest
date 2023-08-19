@@ -1,0 +1,27 @@
+name: Playwright Tests                                                         # Name of the Pipeline
+on:                                                                            # When should this Github Action Pipeline run
+  push:                                                                        # On every push the Pipeline should run
+    branches: [ main ]                                                         # For which branches should it run
+jobs:                                                                          # This jobs should run on push
+  playwrighttests:                                                             # Name of the job; free naming here
+    runs-on: ubuntu-latest                                                     # Choose here the system it shall run on
+    container:                                                                 # Provide an Docker container for our tests
+      image: mcr.microsoft.com/playwright:v1.29.1-focal                        # https://hub.docker.com/_/microsoft-playwright?tab=description
+      env: 
+        # ADMIN_PASSWORD: Admin123                                             # This would work, but we would have revealed our secret Password
+        # Creating a GitHub-Secret: Goto REPO-Settings (not!!! User-Settings) "Secrets and variables"/"Actions"/"New Repository Secret"
+        ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}                          # Create a new secret Name: ADMIN_PASSWORD  Value: Admin123  
+    steps:                                                                     # Do the work; say "Hello"; install the dependencies and so on
+      - name: Checkout repository                                              # Name of the step with predefined actions like "git fetch" or "git pull"
+        uses: actions/checkout@v2                                              # Here predefined action "checkout@v2"
+      - name: Say Hello                                                        # Second step with this name
+        run:  echo Hello                                                       # The "run" command lets us use bash commands for actions
+      - name: Run Playwright Tests
+        run: |                                                                 # | Pipe stands for multiline commands
+          echo "Start the shopping store application in the background with &"
+          echo "& is needed otherwise the other commands will be blocked"
+          chmod +x ./shopping-store-linux-amd64 && ./shopping-store-linux-amd64 &
+          echo "Install dependencies from json lockfile with command npm ci"
+          npm ci                                    
+          echo "Run playwright tests in !headless! mode as specified in package.json"
+          npm run test:ci
